@@ -1,0 +1,634 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Leaf, 
+  Wind, 
+  Sun, 
+  Droplets, 
+  User, 
+  Lock, 
+  Edit, 
+  Trash2, 
+  Plus, 
+  MessageSquare, 
+  Check, 
+  X, 
+  Menu,
+  Globe,
+  Send,
+  ArrowRight,
+  Settings,
+  Layout,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-react';
+
+// --- Mock Data (Başlangıç Verileri) ---
+const initialArticles = [
+  {
+    id: 1,
+    title: "Yapay Zeka Destekli Orman Koruma",
+    category: "Teknoloji",
+    content: "Teknofest kapsamında geliştirilen yeni İHA'lar, orman yangınlarını başlamadan tespit edebiliyor. Bu sistemler termal kameralar ve yapay zeka algoritmaları kullanarak %99 doğrulukla çalışıyor.",
+    image: "https://images.unsplash.com/photo-1591857177580-dc82b9e4e119?auto=format&fit=crop&q=80&w=1000",
+    date: "12 Ekim 2025",
+    comments: [
+      { id: 101, user: "Ahmet Y.", text: "Harika bir proje, ülkemiz için çok önemli.", approved: true },
+      { id: 102, user: "Selin K.", text: "Bu teknolojiyi tarımda da kullanabilir miyiz?", approved: false }
+    ]
+  },
+  {
+    id: 2,
+    title: "Sıfır Atık Mavi Hareketi",
+    category: "Okyanus",
+    content: "Denizlerimizdeki kirlilikle mücadele için geliştirilen otonom deniz temizleme robotları göreve başladı. Güneş enerjisiyle çalışan bu robotlar günde 500kg atık toplayabiliyor.",
+    image: "https://images.unsplash.com/photo-1484291470158-b8f8d608850d?auto=format&fit=crop&q=80&w=1000",
+    date: "10 Ekim 2025",
+    comments: []
+  },
+  {
+    id: 3,
+    title: "Yenilenebilir Enerji Zirvesi",
+    category: "Enerji",
+    content: "Türkiye'nin en büyük güneş enerjisi santrali projesi açıklandı. Bu proje ile karbon ayak izimizi %20 oranında azaltmayı hedefliyoruz.",
+    image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&q=80&w=1000",
+    date: "08 Ekim 2025",
+    comments: [{ id: 103, user: "Mehmet T.", text: "Gelecek güneş enerjisinde!", approved: true }]
+  }
+];
+
+export default function App() {
+  // --- State Yönetimi ---
+  const [view, setView] = useState('home'); // home, article, admin, login
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminTab, setAdminTab] = useState('articles'); // 'articles' or 'settings'
+  const [articles, setArticles] = useState(initialArticles);
+  const [selectedArticle, setSelectedArticle] = useState(null);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  
+  // Site Config State (Site Ayarları)
+  const [siteConfig, setSiteConfig] = useState({
+    siteName: 'TEKNOİKLİM',
+    heroTitle: 'Teknofest Yeşil Gelecek',
+    heroDesc: 'Teknoloji ve doğanın buluştuğu nokta. İklim değişikliği ile mücadelede en yeni teknolojiler, haberler ve projeler burada.'
+  });
+
+  // Admin UI States
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [expandedArticleId, setExpandedArticleId] = useState(null); // Hangi makalenin yorumları açık
+
+  // Form States (Yeni Makale Ekleme)
+  const [newArticle, setNewArticle] = useState({ title: '', category: '', content: '', image: '' });
+  
+  // Yorum State
+  const [newComment, setNewComment] = useState('');
+  const [commentUser, setCommentUser] = useState('');
+
+  // --- Yardımcı Fonksiyonlar ---
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (adminPassword === 'teknofest2026') {
+      setIsAdmin(true);
+      setView('admin');
+      setLoginError('');
+    } else {
+      setLoginError('Hatalı şifre! (İpucu: teknofest2026)');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAdmin(false);
+    setView('home');
+    setAdminPassword('');
+  };
+
+  const deleteArticle = (id) => {
+    if (window.confirm('Bu makaleyle silmek istediğinize emin misiniz?')) {
+      setArticles(articles.filter(a => a.id !== id));
+    }
+  };
+
+  const addArticle = (e) => {
+    e.preventDefault();
+    const article = {
+      id: Date.now(),
+      ...newArticle,
+      date: new Date().toLocaleDateString('tr-TR'),
+      image: newArticle.image || "https://images.unsplash.com/photo-1497436072909-60f360e1d4b0?auto=format&fit=crop&q=80&w=1000",
+      comments: []
+    };
+    setArticles([article, ...articles]);
+    setNewArticle({ title: '', category: '', content: '', image: '' });
+    setShowAddForm(false); // Formu kapat
+    alert('Makale başarıyla yayınlandı!');
+  };
+
+  const addComment = (e) => {
+    e.preventDefault();
+    const updatedArticles = articles.map(article => {
+      if (article.id === selectedArticle.id) {
+        return {
+          ...article,
+          comments: [...article.comments, { id: Date.now(), user: commentUser, text: newComment, approved: false }] // Onay bekliyor
+        };
+      }
+      return article;
+    });
+    setArticles(updatedArticles);
+    const updatedSelected = updatedArticles.find(a => a.id === selectedArticle.id);
+    setSelectedArticle(updatedSelected);
+    setNewComment('');
+    setCommentUser('');
+    alert('Yorumunuz gönderildi! Admin onayından sonra yayınlanacaktır.');
+  };
+
+  const toggleCommentApproval = (articleId, commentId) => {
+    const updatedArticles = articles.map(article => {
+      if (article.id === articleId) {
+        const updatedComments = article.comments.map(c => 
+          c.id === commentId ? { ...c, approved: !c.approved } : c
+        );
+        return { ...article, comments: updatedComments };
+      }
+      return article;
+    });
+    setArticles(updatedArticles);
+  };
+
+  const deleteComment = (articleId, commentId) => {
+    const updatedArticles = articles.map(article => {
+      if (article.id === articleId) {
+        return { ...article, comments: article.comments.filter(c => c.id !== commentId) };
+      }
+      return article;
+    });
+    setArticles(updatedArticles);
+  };
+
+  const updateSiteConfig = (e) => {
+    e.preventDefault();
+    alert('Site ayarları güncellendi!');
+  };
+
+  // --- Bileşenler (Views) ---
+
+  const Navbar = () => (
+    <nav className="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16 items-center">
+          <div className="flex items-center cursor-pointer" onClick={() => setView('home')}>
+            <Globe className="h-8 w-8 text-green-400 mr-2" />
+            <span className="font-bold text-xl tracking-wider uppercase">
+              {siteConfig.siteName.slice(0, 5)}<span className="text-green-400">{siteConfig.siteName.slice(5)}</span>
+            </span>
+          </div>
+          <div className="flex space-x-4">
+            <button onClick={() => setView('home')} className={`px-3 py-2 rounded-md text-sm font-medium ${view === 'home' ? 'bg-slate-800 text-green-400' : 'hover:bg-slate-800'}`}>Ana Sayfa</button>
+            <button className="px-3 py-2 rounded-md text-sm font-medium hover:bg-slate-800 text-gray-300">Projeler</button>
+            {isAdmin ? (
+              <button onClick={() => setView('admin')} className="flex items-center px-3 py-2 bg-red-600 rounded-md text-sm font-medium hover:bg-red-700">
+                <Lock className="w-4 h-4 mr-1" /> Admin Panel
+              </button>
+            ) : (
+              <button onClick={() => setView('login')} className="flex items-center px-3 py-2 border border-gray-600 rounded-md text-sm font-medium hover:bg-slate-800">
+                <User className="w-4 h-4 mr-1" /> Giriş
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+
+  const HomeView = () => (
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <div className="relative bg-slate-900 text-white overflow-hidden">
+        <div className="absolute inset-0">
+          <img className="w-full h-full object-cover opacity-30" src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1500" alt="Earth" />
+        </div>
+        <div className="relative max-w-7xl mx-auto py-24 px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
+            {siteConfig.heroTitle}
+          </h1>
+          <p className="mt-6 text-xl max-w-3xl mx-auto text-gray-300">
+            {siteConfig.heroDesc}
+          </p>
+          <div className="mt-10 max-w-sm mx-auto sm:max-w-none sm:flex sm:justify-center">
+            <button className="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-slate-900 bg-green-400 hover:bg-green-500 md:py-4 md:text-lg md:px-10">
+              Projeleri Keşfet
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Featured Articles Grid */}
+      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl font-extrabold text-gray-900 mb-8 flex items-center">
+          <Leaf className="mr-2 text-green-600" /> Son Gelişmeler
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {articles.map((article) => (
+            <div key={article.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
+              <div className="h-48 overflow-hidden relative">
+                <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full uppercase font-bold tracking-wide">
+                  {article.category}
+                </div>
+                <img src={article.image} alt={article.title} className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500" />
+              </div>
+              <div className="p-6 flex-1 flex flex-col">
+                <div className="text-sm text-gray-500 mb-2">{article.date}</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{article.title}</h3>
+                <p className="text-gray-600 line-clamp-3 mb-4 flex-1">
+                  {article.content}
+                </p>
+                <button 
+                  onClick={() => { setSelectedArticle(article); setView('article'); }}
+                  className="mt-auto w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100"
+                >
+                  Devamını Oku <ArrowRight className="ml-1 w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* User Suggestion Section */}
+      <div className="bg-slate-100 py-12">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+              <Send className="mr-2 text-blue-600" /> Senin de Bir Fikrin Var mı?
+            </h2>
+            <p className="text-gray-600 mb-6">Kullanıcılarımız, Teknofest iklim portalına proje önerisi gönderebilir. Admin onayıyla yayınlanacaktır.</p>
+            <div className="flex gap-4">
+              <input type="text" placeholder="Proje Başlığı..." className="flex-1 p-3 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none" />
+              <button className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 font-medium">Gönder</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const ArticleDetailView = () => (
+    <div className="min-h-screen bg-gray-50 pb-12">
+      {/* Header Image */}
+      <div className="h-64 md:h-96 w-full relative">
+        <img src={selectedArticle.image} alt={selectedArticle.title} className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-end">
+          <div className="max-w-7xl mx-auto px-4 pb-12 w-full">
+            <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold mb-4 inline-block">{selectedArticle.category}</span>
+            <h1 className="text-3xl md:text-5xl font-bold text-white">{selectedArticle.title}</h1>
+            <p className="text-gray-300 mt-2">{selectedArticle.date}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 -mt-8 relative z-10">
+        <div className="bg-white rounded-lg shadow-xl p-8 md:p-12">
+          <button onClick={() => setView('home')} className="mb-6 text-blue-600 hover:underline flex items-center">
+             &larr; Ana Sayfaya Dön
+          </button>
+          
+          <div className="prose max-w-none text-gray-800 text-lg leading-relaxed">
+            {selectedArticle.content}
+          </div>
+
+          <hr className="my-12 border-gray-200" />
+
+          {/* Comments Section */}
+          <div className="bg-gray-50 p-6 rounded-lg">
+            <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+              <MessageSquare className="mr-2" /> Yorumlar ({selectedArticle.comments.filter(c => c.approved).length})
+            </h3>
+            
+            <div className="space-y-6 mb-8">
+              {selectedArticle.comments.filter(c => c.approved).length === 0 && (
+                <p className="text-gray-500 italic">Henüz yorum yapılmamış. İlk yorumu sen yap!</p>
+              )}
+              {selectedArticle.comments.filter(c => c.approved).map(comment => (
+                <div key={comment.id} className="border-b border-gray-200 pb-4 last:border-0">
+                  <div className="font-semibold text-gray-800">{comment.user}</div>
+                  <div className="text-gray-600 mt-1">{comment.text}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
+              <h4 className="font-semibold mb-4">Yorum Yap</h4>
+              <form onSubmit={addComment}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">İsim</label>
+                  <input 
+                    required 
+                    type="text" 
+                    value={commentUser}
+                    onChange={(e) => setCommentUser(e.target.value)}
+                    className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 outline-none" 
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Yorum</label>
+                  <textarea 
+                    required 
+                    rows="3" 
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 outline-none"
+                  ></textarea>
+                </div>
+                <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700">Gönder</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const LoginView = () => (
+    <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-2xl overflow-hidden">
+        <div className="bg-slate-900 p-6 text-center">
+          <Lock className="w-12 h-12 text-white mx-auto mb-2" />
+          <h2 className="text-2xl font-bold text-white">Yönetici Girişi</h2>
+          <p className="text-gray-400 text-sm">Sadece yetkili personel içindir.</p>
+        </div>
+        <div className="p-8">
+          <form onSubmit={handleLogin}>
+            <div className="mb-6">
+              <label className="block text-gray-700 text-sm font-bold mb-2">Şifre</label>
+              <input 
+                type="password" 
+                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                placeholder="Şifrenizi girin..."
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+              />
+            </div>
+            {loginError && <p className="text-red-500 text-sm mb-4">{loginError}</p>}
+            <button className="w-full bg-red-600 text-white font-bold py-3 rounded-md hover:bg-red-700 transition duration-300">
+              Giriş Yap
+            </button>
+          </form>
+          <div className="mt-6 text-center">
+             <button onClick={() => setView('home')} className="text-sm text-gray-500 hover:text-gray-800">Ana Sayfaya Dön</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const AdminDashboard = () => (
+    <div className="min-h-screen bg-gray-100 flex flex-col md:flex-row">
+      {/* Sidebar */}
+      <div className="w-full md:w-64 bg-slate-900 text-white flex-shrink-0">
+        <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+          <h2 className="text-xl font-bold flex items-center"><Lock className="mr-2 w-5 h-5" /> Panel</h2>
+          <button onClick={handleLogout} className="md:hidden text-red-400 hover:text-red-300"><User className="w-5 h-5"/></button>
+        </div>
+        <nav className="p-4 flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-visible">
+          <button 
+            onClick={() => setAdminTab('articles')}
+            className={`flex items-center w-full text-left py-2.5 px-4 rounded transition duration-200 ${adminTab === 'articles' ? 'bg-red-600 text-white' : 'hover:bg-slate-800 text-gray-400'}`}
+          >
+            <Layout className="w-4 h-4 mr-2" /> Makale Yönetimi
+          </button>
+          <button 
+            onClick={() => setAdminTab('settings')}
+            className={`flex items-center w-full text-left py-2.5 px-4 rounded transition duration-200 ${adminTab === 'settings' ? 'bg-red-600 text-white' : 'hover:bg-slate-800 text-gray-400'}`}
+          >
+            <Settings className="w-4 h-4 mr-2" /> Site Ayarları
+          </button>
+        </nav>
+        <div className="hidden md:block absolute bottom-0 w-64 p-4 border-t border-slate-800">
+          <button onClick={handleLogout} className="flex items-center text-gray-400 hover:text-white w-full">
+            <User className="mr-2 w-5 h-5" /> Çıkış Yap
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 p-4 md:p-8 overflow-y-auto">
+        
+        {/* --- ARTICLE MANAGEMENT TAB --- */}
+        {adminTab === 'articles' && (
+          <div className="max-w-5xl mx-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold text-gray-800">İçerik Yönetimi</h1>
+              <button 
+                onClick={() => setShowAddForm(!showAddForm)} 
+                className={`flex items-center px-4 py-2 rounded-md font-medium transition-colors ${showAddForm ? 'bg-gray-200 text-gray-700' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+              >
+                {showAddForm ? <><X className="w-4 h-4 mr-2" /> İptal</> : <><Plus className="w-4 h-4 mr-2" /> Yeni Makale Ekle</>}
+              </button>
+            </div>
+
+            {/* Stats Bar */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
+               <div className="bg-white p-4 rounded-lg shadow-sm border-t-4 border-blue-500 text-center">
+                 <div className="text-2xl font-bold text-gray-800">{articles.length}</div>
+                 <div className="text-xs text-gray-500">Makale</div>
+               </div>
+               <div className="bg-white p-4 rounded-lg shadow-sm border-t-4 border-yellow-500 text-center">
+                 <div className="text-2xl font-bold text-gray-800">{articles.reduce((acc, curr) => acc + curr.comments.filter(c => !c.approved).length, 0)}</div>
+                 <div className="text-xs text-gray-500">Onay Bekleyen</div>
+               </div>
+               <div className="bg-white p-4 rounded-lg shadow-sm border-t-4 border-green-500 text-center">
+                 <div className="text-2xl font-bold text-gray-800">{articles.reduce((acc, curr) => acc + curr.comments.filter(c => c.approved).length, 0)}</div>
+                 <div className="text-xs text-gray-500">Yayında</div>
+               </div>
+            </div>
+
+            {/* Add Article Form (Conditional) */}
+            {showAddForm && (
+              <div className="bg-white rounded-lg shadow-lg border border-blue-100 p-6 mb-8 animate-fade-in-down">
+                <h3 className="text-lg font-bold mb-4 text-blue-800">Yeni Makale Oluştur</h3>
+                <form onSubmit={addArticle}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Başlık</label>
+                      <input required type="text" value={newArticle.title} onChange={e => setNewArticle({...newArticle, title: e.target.value})} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Kategori</label>
+                      <select value={newArticle.category} onChange={e => setNewArticle({...newArticle, category: e.target.value})} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Seçiniz</option>
+                        <option value="Teknoloji">Teknoloji</option>
+                        <option value="İklim">İklim</option>
+                        <option value="Enerji">Enerji</option>
+                        <option value="Haber">Haber</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">Görsel URL</label>
+                    <input type="text" placeholder="https://..." value={newArticle.image} onChange={e => setNewArticle({...newArticle, image: e.target.value})} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">İçerik</label>
+                    <textarea required rows="4" value={newArticle.content} onChange={e => setNewArticle({...newArticle, content: e.target.value})} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                  </div>
+                  <div className="flex justify-end">
+                    <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 font-medium">Yayınla</button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Article List */}
+            <div className="space-y-4">
+              {articles.map(article => (
+                <div key={article.id} className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                  <div className="p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div className="flex items-center space-x-4 flex-1">
+                      <img src={article.image} alt="" className="w-16 h-16 object-cover rounded-md bg-gray-100 hidden sm:block" />
+                      <div>
+                        <h4 className="font-bold text-gray-800 text-lg">{article.title}</h4>
+                        <div className="flex items-center text-sm text-gray-500 space-x-2">
+                           <span className="bg-gray-100 px-2 py-0.5 rounded text-xs uppercase tracking-wide">{article.category}</span>
+                           <span>•</span>
+                           <span>{article.date}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2 w-full md:w-auto justify-end">
+                      <button 
+                        onClick={() => setExpandedArticleId(expandedArticleId === article.id ? null : article.id)}
+                        className={`flex items-center px-3 py-2 rounded text-sm font-medium transition-colors ${expandedArticleId === article.id ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'}`}
+                      >
+                        <MessageSquare className="w-4 h-4 mr-1.5" />
+                        Yorumlar ({article.comments.length})
+                        {expandedArticleId === article.id ? <ChevronUp className="w-4 h-4 ml-1" /> : <ChevronDown className="w-4 h-4 ml-1" />}
+                      </button>
+                      <button onClick={() => deleteArticle(article.id)} className="p-2 text-red-500 hover:bg-red-50 rounded transition-colors" title="Sil">
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Comments Section (Expandable) */}
+                  {expandedArticleId === article.id && (
+                    <div className="bg-gray-50 border-t border-gray-100 p-4 animate-fade-in">
+                      <h5 className="text-sm font-bold text-gray-700 mb-3 flex items-center">
+                        Yorum Denetimi
+                        <span className="ml-2 text-xs font-normal text-gray-500 bg-white px-2 py-0.5 rounded border">
+                           {article.comments.filter(c => !c.approved).length} Onay Bekleyen
+                        </span>
+                      </h5>
+                      
+                      {article.comments.length === 0 ? (
+                         <div className="text-center py-4 text-gray-400 text-sm">Bu makaleye henüz yorum yapılmamış.</div>
+                      ) : (
+                        <div className="grid grid-cols-1 gap-2">
+                          {article.comments.map(c => (
+                            <div key={c.id} className="bg-white p-3 rounded border border-gray-200 flex justify-between items-center group hover:shadow-sm transition-shadow">
+                               <div className="flex-1 min-w-0 mr-4">
+                                 <div className="flex items-center mb-1">
+                                   <span className="font-bold text-sm text-gray-800 mr-2">{c.user}</span>
+                                   <span className={`text-[10px] uppercase px-1.5 py-0.5 rounded ${c.approved ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                      {c.approved ? 'Yayında' : 'Onay Bekliyor'}
+                                   </span>
+                                 </div>
+                                 <p className="text-sm text-gray-600 truncate">{c.text}</p>
+                               </div>
+                               <div className="flex items-center space-x-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button 
+                                    onClick={() => toggleCommentApproval(article.id, c.id)} 
+                                    className={`p-1.5 rounded transition-colors ${c.approved ? 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100' : 'bg-green-50 text-green-600 hover:bg-green-100'}`}
+                                    title={c.approved ? "Yayından Kaldır" : "Onayla"}
+                                  >
+                                    {c.approved ? <X className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                                  </button>
+                                  <button onClick={() => deleteComment(article.id, c.id)} className="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100" title="Sil">
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                               </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* --- SITE SETTINGS TAB --- */}
+        {adminTab === 'settings' && (
+          <div className="max-w-2xl mx-auto">
+             <h1 className="text-2xl font-bold text-gray-800 mb-6">Site Genel Ayarları</h1>
+             <div className="bg-white rounded-lg shadow-md p-6">
+                <form onSubmit={updateSiteConfig}>
+                   <div className="mb-6">
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Site İsmi (Logo)</label>
+                      <div className="flex">
+                         <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                           <Globe className="h-4 w-4" />
+                         </span>
+                         <input 
+                           type="text" 
+                           value={siteConfig.siteName}
+                           onChange={(e) => setSiteConfig({...siteConfig, siteName: e.target.value.toUpperCase()})}
+                           className="flex-1 block w-full rounded-none rounded-r-md border-gray-300 border p-2 focus:ring-red-500 focus:border-red-500"
+                           maxLength="20"
+                         />
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">Sol üstte görünen marka ismi.</p>
+                   </div>
+
+                   <div className="mb-6">
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Ana Sayfa Başlığı</label>
+                      <input 
+                         type="text" 
+                         value={siteConfig.heroTitle}
+                         onChange={(e) => setSiteConfig({...siteConfig, heroTitle: e.target.value})}
+                         className="block w-full rounded-md border-gray-300 border p-2 focus:ring-red-500 focus:border-red-500"
+                      />
+                   </div>
+
+                   <div className="mb-6">
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Ana Sayfa Açıklaması</label>
+                      <textarea 
+                         rows="3"
+                         value={siteConfig.heroDesc}
+                         onChange={(e) => setSiteConfig({...siteConfig, heroDesc: e.target.value})}
+                         className="block w-full rounded-md border-gray-300 border p-2 focus:ring-red-500 focus:border-red-500"
+                      ></textarea>
+                   </div>
+
+                   <div className="flex justify-end pt-4 border-t border-gray-100">
+                      <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 font-medium flex items-center">
+                        <Check className="w-4 h-4 mr-2" /> Kaydet
+                      </button>
+                   </div>
+                </form>
+             </div>
+             
+             <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-md p-4">
+               <h4 className="font-bold text-yellow-800 text-sm mb-1">İpucu</h4>
+               <p className="text-sm text-yellow-700">Burada yaptığınız değişiklikler "Kaydet" butonuna bastığınız anda ana sayfaya yansır.</p>
+             </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="font-sans text-gray-900">
+      {view !== 'login' && view !== 'admin' && <Navbar />}
+      
+      {view === 'home' && <HomeView />}
+      {view === 'article' && selectedArticle && <ArticleDetailView />}
+      {view === 'login' && <LoginView />}
+      {view === 'admin' && isAdmin && <AdminDashboard />}
+    </div>
+  );
+}
