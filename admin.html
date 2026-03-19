@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Paneli - Yarının Çığlığı</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="30" cy="30" r="28" stroke="url(#grad1)" stroke-width="2.5"/>
+            <path d="M18 38 L30 14 L42 38" stroke="url(#grad1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 32 L39 32" stroke="url(#grad1)" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="30" cy="44" r="2.5" fill="url(#grad1)"/>
+            <defs>
+              <linearGradient id="grad1" x1="0" y1="0" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#c084fc"/>
+                <stop offset="100%" stop-color="#818cf8"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text">Yarının Çığlığı - Admin</span>
+      </div>
+    </div>
+  </header>
+
+  <main style="padding-top:90px; padding-bottom:3rem;">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Yönetim</div>
+        <h2 class="section-title">Site İçeriği Yönetimi</h2>
+        <p class="section-desc">Aşağıdaki alanlardan ana sayfadaki temel metinleri güncelleyebilirsiniz.</p>
+      </div>
+
+      <div class="admin-grid">
+        <section class="admin-card">
+          <h3>Hero Bölümü</h3>
+          <div class="form-group">
+            <label>Başlık - Satır 1</label>
+            <input type="text" id="field-hero-title-1" placeholder="Yarının" />
+          </div>
+          <div class="form-group">
+            <label>Başlık - Satır 2</label>
+            <input type="text" id="field-hero-title-2" placeholder="Çığlığı" />
+          </div>
+          <div class="form-group">
+            <label>Alt Başlık</label>
+            <textarea id="field-hero-subtitle" rows="3" placeholder="Hero açıklaması"></textarea>
+          </div>
+        </section>
+
+        <section class="admin-card">
+          <h3>Hakkımızda Bölümü</h3>
+          <div class="form-group">
+            <label>Paragraf 1</label>
+            <textarea id="field-about-text-1" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Paragraf 2</label>
+            <textarea id="field-about-text-2" rows="3"></textarea>
+          </div>
+          <hr style="border:none; border-top:1px solid rgba(148,163,184,0.3); margin:1rem 0;" />
+          <div class="form-group">
+            <label>İstatistik 1 Sayı</label>
+            <input type="text" id="field-stat-1-num" />
+          </div>
+          <div class="form-group">
+            <label>İstatistik 1 Etiket</label>
+            <input type="text" id="field-stat-1-label" />
+          </div>
+          <div class="form-group">
+            <label>İstatistik 2 Sayı</label>
+            <input type="text" id="field-stat-2-num" />
+          </div>
+          <div class="form-group">
+            <label>İstatistik 2 Etiket</label>
+            <input type="text" id="field-stat-2-label" />
+          </div>
+          <div class="form-group">
+            <label>İstatistik 3 Sayı</label>
+            <input type="text" id="field-stat-3-num" />
+          </div>
+          <div class="form-group">
+            <label>İstatistik 3 Etiket</label>
+            <input type="text" id="field-stat-3-label" />
+          </div>
+          <div class="form-group">
+            <label>İstatistik 4 Sayı</label>
+            <input type="text" id="field-stat-4-num" />
+          </div>
+          <div class="form-group">
+            <label>İstatistik 4 Etiket</label>
+            <input type="text" id="field-stat-4-label" />
+          </div>
+        </section>
+
+        <section class="admin-card">
+          <h3>Takım Bölümü</h3>
+          <div class="form-group">
+            <label>Üst Etiket</label>
+            <input type="text" id="field-team-tag" />
+          </div>
+          <div class="form-group">
+            <label>Başlık</label>
+            <input type="text" id="field-team-title" />
+          </div>
+          <div class="form-group">
+            <label>Açıklama</label>
+            <textarea id="field-team-desc" rows="3"></textarea>
+          </div>
+          <hr style="border:none; border-top:1px solid rgba(148,163,184,0.3); margin:1rem 0;" />
+          <div class="form-group">
+            <label>1. Kişi İsim</label>
+            <input type="text" id="field-team-1-name" />
+          </div>
+          <div class="form-group">
+            <label>1. Kişi Rol</label>
+            <input type="text" id="field-team-1-role" />
+          </div>
+          <div class="form-group">
+            <label>1. Kişi Etiket 1</label>
+            <input type="text" id="field-team-1-tag-1" />
+          </div>
+          <div class="form-group">
+            <label>1. Kişi Etiket 2</label>
+            <input type="text" id="field-team-1-tag-2" />
+          </div>
+          <div class="form-group">
+            <label>2. Kişi İsim</label>
+            <input type="text" id="field-team-2-name" />
+          </div>
+          <div class="form-group">
+            <label>2. Kişi Rol</label>
+            <input type="text" id="field-team-2-role" />
+          </div>
+          <div class="form-group">
+            <label>2. Kişi Etiket 1</label>
+            <input type="text" id="field-team-2-tag-1" />
+          </div>
+          <div class="form-group">
+            <label>2. Kişi Etiket 2</label>
+            <input type="text" id="field-team-2-tag-2" />
+          </div>
+          <div class="form-group">
+            <label>3. Kişi İsim</label>
+            <input type="text" id="field-team-3-name" />
+          </div>
+          <div class="form-group">
+            <label>3. Kişi Rol</label>
+            <input type="text" id="field-team-3-role" />
+          </div>
+          <div class="form-group">
+            <label>3. Kişi Etiket 1</label>
+            <input type="text" id="field-team-3-tag-1" />
+          </div>
+          <div class="form-group">
+            <label>3. Kişi Etiket 2</label>
+            <input type="text" id="field-team-3-tag-2" />
+          </div>
+          <div class="form-group">
+            <label>4. Kişi İsim</label>
+            <input type="text" id="field-team-4-name" />
+          </div>
+          <div class="form-group">
+            <label>4. Kişi Rol</label>
+            <input type="text" id="field-team-4-role" />
+          </div>
+          <div class="form-group">
+            <label>4. Kişi Etiket 1</label>
+            <input type="text" id="field-team-4-tag-1" />
+          </div>
+          <div class="form-group">
+            <label>4. Kişi Etiket 2</label>
+            <input type="text" id="field-team-4-tag-2" />
+          </div>
+        </section>
+
+        <section class="admin-card">
+          <h3>Proje Sunumu</h3>
+          <div class="form-group">
+            <label>Bölüm Etiketi</label>
+            <input type="text" id="field-project-tag" />
+          </div>
+          <div class="form-group">
+            <label>Bölüm Başlığı</label>
+            <input type="text" id="field-project-title" />
+          </div>
+          <div class="form-group">
+            <label>Bölüm Açıklaması</label>
+            <textarea id="field-project-desc" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Misyon Başlık</label>
+            <input type="text" id="field-project-mission-title" />
+          </div>
+          <div class="form-group">
+            <label>Misyon Metni</label>
+            <textarea id="field-project-mission-text" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Vizyon Başlık</label>
+            <input type="text" id="field-project-vision-title" />
+          </div>
+          <div class="form-group">
+            <label>Vizyon Metni</label>
+            <textarea id="field-project-vision-text" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Hedefler Başlık</label>
+            <input type="text" id="field-project-goals-title" />
+          </div>
+          <div class="form-group">
+            <label>Hedefler Metni</label>
+            <textarea id="field-project-goals-text" rows="2"></textarea>
+          </div>
+        </section>
+
+        <section class="admin-card">
+          <h3>Etkinlikler Bölümü</h3>
+          <div class="form-group">
+            <label>Bölüm Etiketi</label>
+            <input type="text" id="field-events-tag" />
+          </div>
+          <div class="form-group">
+            <label>Bölüm Başlığı</label>
+            <input type="text" id="field-events-title" />
+          </div>
+          <div class="form-group">
+            <label>Bölüm Açıklaması</label>
+            <textarea id="field-events-desc" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>1. Etkinlik Başlık</label>
+            <input type="text" id="field-event-1-title" />
+          </div>
+          <div class="form-group">
+            <label>1. Etkinlik Metni</label>
+            <textarea id="field-event-1-text" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>2. Etkinlik Başlık</label>
+            <input type="text" id="field-event-2-title" />
+          </div>
+          <div class="form-group">
+            <label>2. Etkinlik Metni</label>
+            <textarea id="field-event-2-text" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>3. Etkinlik Başlık</label>
+            <input type="text" id="field-event-3-title" />
+          </div>
+          <div class="form-group">
+            <label>3. Etkinlik Metni</label>
+            <textarea id="field-event-3-text" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>4. Etkinlik Başlık</label>
+            <input type="text" id="field-event-4-title" />
+          </div>
+          <div class="form-group">
+            <label>4. Etkinlik Metni</label>
+            <textarea id="field-event-4-text" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>5. Etkinlik Başlık</label>
+            <input type="text" id="field-event-5-title" />
+          </div>
+          <div class="form-group">
+            <label>5. Etkinlik Metni</label>
+            <textarea id="field-event-5-text" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>6. Etkinlik Başlık</label>
+            <input type="text" id="field-event-6-title" />
+          </div>
+          <div class="form-group">
+            <label>6. Etkinlik Metni</label>
+            <textarea id="field-event-6-text" rows="2"></textarea>
+          </div>
+        </section>
+
+        <section class="admin-card">
+          <h3>Edebiyat Bölümü</h3>
+          <div class="form-group">
+            <label>Bölüm Etiketi</label>
+            <input type="text" id="field-literature-tag" />
+          </div>
+          <div class="form-group">
+            <label>Bölüm Başlık</label>
+            <input type="text" id="field-literature-title" />
+          </div>
+          <div class="form-group">
+            <label>Bölüm Açıklaması</label>
+            <textarea id="field-literature-desc" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Şiir Başlık</label>
+            <input type="text" id="field-poem-title" />
+          </div>
+          <div class="form-group">
+            <label>Şiir Metni</label>
+            <textarea id="field-poem-text" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Şiir Alıntı</label>
+            <textarea id="field-poem-quote" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Şiir Alıntı İmza</label>
+            <input type="text" id="field-poem-quote-footer" />
+          </div>
+          <div class="form-group">
+            <label>Hikaye Başlık</label>
+            <input type="text" id="field-story-title" />
+          </div>
+          <div class="form-group">
+            <label>Hikaye Metni</label>
+            <textarea id="field-story-text" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Hikaye Alıntı</label>
+            <textarea id="field-story-quote" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Hikaye Alıntı İmza</label>
+            <input type="text" id="field-story-quote-footer" />
+          </div>
+        </section>
+
+        <section class="admin-card">
+          <h3>Tasarım Bölümü</h3>
+          <div class="form-group">
+            <label>Bölüm Etiketi</label>
+            <input type="text" id="field-design-tag" />
+          </div>
+          <div class="form-group">
+            <label>Bölüm Başlık</label>
+            <input type="text" id="field-design-title" />
+          </div>
+          <div class="form-group">
+            <label>Bölüm Açıklaması</label>
+            <textarea id="field-design-desc" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Afiş Başlık</label>
+            <input type="text" id="field-design-poster-title" />
+          </div>
+          <div class="form-group">
+            <label>Afiş Metni</label>
+            <textarea id="field-design-poster-text" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Logo Başlık</label>
+            <input type="text" id="field-design-logo-title" />
+          </div>
+          <div class="form-group">
+            <label>Logo Metni</label>
+            <textarea id="field-design-logo-text" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Broşür Başlık</label>
+            <input type="text" id="field-design-brochure-title" />
+          </div>
+          <div class="form-group">
+            <label>Broşür Metni</label>
+            <textarea id="field-design-brochure-text" rows="2"></textarea>
+          </div>
+        </section>
+
+        <section class="admin-card">
+          <h3>Mektuplar Bölümü</h3>
+          <div class="form-group">
+            <label>Bölüm Etiketi</label>
+            <input type="text" id="field-letters-tag" />
+          </div>
+          <div class="form-group">
+            <label>Bölüm Başlık</label>
+            <input type="text" id="field-letters-title" />
+          </div>
+          <div class="form-group">
+            <label>Bölüm Açıklaması</label>
+            <textarea id="field-letters-desc" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>1. Mektup Başlık</label>
+            <input type="text" id="field-letter-1-title" />
+          </div>
+          <div class="form-group">
+            <label>1. Mektup Meta</label>
+            <input type="text" id="field-letter-1-meta" />
+          </div>
+          <div class="form-group">
+            <label>1. Mektup Satır 1</label>
+            <textarea id="field-letter-1-line-1" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>1. Mektup Satır 2</label>
+            <textarea id="field-letter-1-line-2" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>1. Mektup İmza</label>
+            <input type="text" id="field-letter-1-sign" />
+          </div>
+          <div class="form-group">
+            <label>2. Mektup Başlık</label>
+            <input type="text" id="field-letter-2-title" />
+          </div>
+          <div class="form-group">
+            <label>2. Mektup Meta</label>
+            <input type="text" id="field-letter-2-meta" />
+          </div>
+          <div class="form-group">
+            <label>2. Mektup Satır 1</label>
+            <textarea id="field-letter-2-line-1" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>2. Mektup Satır 2</label>
+            <textarea id="field-letter-2-line-2" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>2. Mektup İmza</label>
+            <input type="text" id="field-letter-2-sign" />
+          </div>
+        </section>
+
+        <section class="admin-card">
+          <h3>İletişim Bilgileri</h3>
+          <div class="form-group">
+            <label>Bölüm Etiketi</label>
+            <input type="text" id="field-contact-tag" />
+          </div>
+          <div class="form-group">
+            <label>Bölüm Başlık</label>
+            <input type="text" id="field-contact-title" />
+          </div>
+          <div class="form-group">
+            <label>Bölüm Açıklaması</label>
+            <textarea id="field-contact-desc" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Adres Metni</label>
+            <textarea id="field-contact-address-value" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>E-posta Adresi</label>
+            <input type="text" id="field-contact-email-value" />
+          </div>
+          <div class="form-group">
+            <label>Telefon</label>
+            <input type="text" id="field-contact-phone-value" />
+          </div>
+          <div class="form-group">
+            <label>Social 1 (metin)</label>
+            <input type="text" id="field-contact-social-1" />
+          </div>
+          <div class="form-group">
+            <label>Social 2 (metin)</label>
+            <input type="text" id="field-contact-social-2" />
+          </div>
+          <div class="form-group">
+            <label>Social 3 (metin)</label>
+            <input type="text" id="field-contact-social-3" />
+          </div>
+        </section>
+      </div>
+
+      <div style="margin-top:2rem; display:flex; gap:1rem; flex-wrap:wrap;">
+        <button class="btn btn-primary" id="btn-save-content">Kaydet</button>
+        <button class="btn btn-outline" id="btn-reset-content">Varsayılanlara Dön</button>
+        <a href="index.html" class="btn btn-outline">Siteyi Görüntüle</a>
+      </div>
+    </div>
+  </main>
+
+  <div class="admin-auth-overlay" id="admin-auth-overlay">
+    <div class="admin-auth-modal">
+      <h3>Admin Girişi</h3>
+      <p>Lütfen admin şifresini girin.</p>
+      <div class="form-group">
+        <label>Şifre</label>
+        <input type="password" id="admin-password-input" placeholder="Admin şifresi" />
+      </div>
+      <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:0.5rem;">
+        <button class="btn btn-outline" id="admin-auth-cancel">Vazgeç</button>
+        <button class="btn btn-primary" id="admin-auth-submit">Giriş Yap</button>
+      </div>
+      <p id="admin-auth-error" style="color:#f87171; font-size:0.8rem; margin-top:0.75rem; display:none;">Şifre hatalı, tekrar deneyin.</p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
