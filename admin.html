@@ -480,7 +480,11 @@
   <div class="admin-auth-overlay" id="admin-auth-overlay">
     <div class="admin-auth-modal">
       <h3>Admin Girişi</h3>
-      <p>Lütfen admin şifresini girin.</p>
+      <p>Supabase email/şifre ile giriş yapın.</p>
+      <div class="form-group">
+        <label>E-posta</label>
+        <input type="email" id="admin-email-input" placeholder="admin@ornek.com" />
+      </div>
       <div class="form-group">
         <label>Şifre</label>
         <input type="password" id="admin-password-input" placeholder="Admin şifresi" />
@@ -493,6 +497,7 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
 </body>
 </html>

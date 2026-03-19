@@ -1,6 +1,8 @@
-const YCMS_STORAGE_KEY = 'ycmsContent';
-const YCMS_ADMIN_AUTH_KEY = 'ycmsAdminAuthed';
-const YCMS_ADMIN_PASSWORD = 'yarin2024'; // İsterseniz daha sonra değiştirebilirsiniz
+const SUPABASE_URL = 'https://ycmqanjsgvysbmnjtjih.supabase.co';
+const SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljbXFhbmpzZ3Z5c2Jtbmp0amloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MTc1NDAsImV4cCI6MjA4OTQ5MzU0MH0.FbfsjbHJhj1dh9M8PFEcKy2p2Pa4hzxkS8_v3UXYPd4';
+
+let supabase = null;
 
 const defaultContent = {
   'hero-title-1': 'Yarının',
@@ -128,85 +130,164 @@ const defaultContent = {
   'contact-social-3': 'YouTube'
 };
 
-function getStoredContent() {
-  try {
-    const raw = localStorage.getItem(YCMS_STORAGE_KEY);
-    if (!raw) return { ...defaultContent };
-    const parsed = JSON.parse(raw);
-    return { ...defaultContent, ...parsed };
-  } catch {
-    return { ...defaultContent };
+let lastLoadedContent = { ...defaultContent };
+
+function normalizeValueForKey(key, value) {
+  const str = typeof value === 'string' ? value : String(value ?? '');
+
+  // textarea'daki yeni satırları HTML <br/>'a çevirelim
+  if (key === 'poem-quote' || key === 'story-quote') {
+    return str.replace(/\r\n/g, '\n').replace(/\n/g, '<br/>');
   }
+
+  return str;
 }
 
-function saveContentToStorage(data) {
-  localStorage.setItem(YCMS_STORAGE_KEY, JSON.stringify(data));
-}
-
-function applyContentToPage() {
-  const content = getStoredContent();
+function applyContentToPage(content) {
   Object.entries(content).forEach(([id, value]) => {
     const el = document.getElementById(id);
     if (!el) return;
-    if (typeof value === 'string' && value.trim() === '') {
+
+    const str = typeof value === 'string' ? value : String(value ?? '');
+
+    if (str.trim() === '') {
       el.style.display = 'none';
       return;
     }
+
     el.style.display = '';
-    el.textContent = value;
+
+    if (id === 'poem-quote' || id === 'story-quote') {
+      const html = str.replace(/\r\n/g, '\n').replace(/\n/g, '<br/>');
+      el.innerHTML = html;
+    } else {
+      el.textContent = str;
+    }
   });
 }
 
-function hydrateAdminForm() {
-  const content = getStoredContent();
+function hydrateAdminForm(content) {
   Object.entries(content).forEach(([id, value]) => {
     const field = document.getElementById('field-' + id);
     if (!field) return;
     if (field.tagName === 'TEXTAREA' || field.tagName === 'INPUT') {
-      field.value = value;
+      field.value = value ?? '';
     }
   });
 }
 
-function initAdminPage() {
+function getAdminFormContentFromInputs() {
+  const updated = { ...lastLoadedContent };
+  Object.keys(defaultContent).forEach((id) => {
+    const field = document.getElementById('field-' + id);
+    if (!field) return;
+    updated[id] = normalizeValueForKey(id, field.value);
+  });
+  return updated;
+}
+
+async function fetchContentFromSupabase() {
+  if (!supabase) throw new Error('Supabase client not initialized');
+
+  const keys = Object.keys(defaultContent);
+  const { data, error } = await supabase
+    .from('site_kv')
+    .select('key,value')
+    .in('key', keys);
+
+  if (error) throw error;
+
+  const map = {};
+  (data || []).forEach((row) => {
+    if (!row || row.key == null) return;
+    map[row.key] = row.value;
+  });
+
+  return { ...defaultContent, ...map };
+}
+
+async function fetchContentFromSupabaseSafe() {
+  try {
+    return await fetchContentFromSupabase();
+  } catch (e) {
+    console.warn('Supabase içerik çekilemedi. Varsayılan içerik kullanılıyor.', e);
+    return { ...defaultContent };
+  }
+}
+
+async function upsertContentToSupabase(content) {
+  if (!supabase) throw new Error('Supabase client not initialized');
+
+  const rows = Object.entries(content).map(([key, value]) => ({
+    key,
+    value: String(value ?? '')
+  }));
+
+  const { error } = await supabase.from('site_kv').upsert(rows, { onConflict: 'key' });
+  if (error) throw error;
+}
+
+async function initAdminPage() {
   const overlay = document.getElementById('admin-auth-overlay');
   if (!overlay) return;
+  if (!supabase) return;
+
+  const emailInput = document.getElementById('admin-email-input');
+  const passwordInput = document.getElementById('admin-password-input');
+  const submitBtn = document.getElementById('admin-auth-submit');
+  const cancelBtn = document.getElementById('admin-auth-cancel');
+  const errorText = document.getElementById('admin-auth-error');
 
   function showOverlay() {
     overlay.classList.add('visible');
+    errorText && (errorText.style.display = 'none');
   }
 
   function hideOverlay() {
     overlay.classList.remove('visible');
   }
 
-  function isAuthed() {
-    return sessionStorage.getItem(YCMS_ADMIN_AUTH_KEY) === '1';
+  function setErrorVisible(message) {
+    if (!errorText) return;
+    errorText.style.display = message ? 'block' : 'none';
+    if (message) errorText.textContent = message;
   }
 
-  function handleAuth() {
-    if (isAuthed()) {
+  async function refreshAuthStateAndHydrate() {
+    setErrorVisible('');
+    const { data, error } = await supabase.auth.getUser();
+    if (error) throw error;
+
+    if (data?.user) {
       hideOverlay();
-      hydrateAdminForm();
+      lastLoadedContent = await fetchContentFromSupabaseSafe();
+      hydrateAdminForm(lastLoadedContent);
+    } else {
+      showOverlay();
+    }
+  }
+
+  submitBtn?.addEventListener('click', async () => {
+    setErrorVisible('');
+
+    const email = emailInput?.value?.trim();
+    const password = passwordInput?.value?.trim();
+
+    if (!email || !password) {
+      setErrorVisible('Lütfen e-posta ve şifre girin.');
       return;
     }
-    showOverlay();
-  }
 
-  const input = document.getElementById('admin-password-input');
-  const submitBtn = document.getElementById('admin-auth-submit');
-  const cancelBtn = document.getElementById('admin-auth-cancel');
-  const errorText = document.getElementById('admin-auth-error');
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
 
-  submitBtn?.addEventListener('click', () => {
-    const value = input.value.trim();
-    if (value === YCMS_ADMIN_PASSWORD) {
-      sessionStorage.setItem(YCMS_ADMIN_AUTH_KEY, '1');
-      errorText.style.display = 'none';
+      lastLoadedContent = await fetchContentFromSupabaseSafe();
+      hydrateAdminForm(lastLoadedContent);
       hideOverlay();
-      hydrateAdminForm();
-    } else {
-      errorText.style.display = 'block';
+    } catch (e) {
+      console.error(e);
+      setErrorVisible('Giriş başarısız. E-posta/şifreyi kontrol edin.');
     }
   });
 
@@ -214,41 +295,56 @@ function initAdminPage() {
     window.location.href = 'index.html';
   });
 
-  input?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      submitBtn.click();
-    }
+  passwordInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitBtn?.click();
   });
 
   const saveBtn = document.getElementById('btn-save-content');
   const resetBtn = document.getElementById('btn-reset-content');
 
-  saveBtn?.addEventListener('click', () => {
-    const current = getStoredContent();
-    const updated = { ...current };
-
-    Object.keys(defaultContent).forEach((id) => {
-      const field = document.getElementById('field-' + id);
-      if (!field) return;
-      updated[id] = field.value;
-    });
-
-    saveContentToStorage(updated);
-    alert('İçerik kaydedildi. Ana sayfayı yenileyerek görebilirsiniz.');
+  saveBtn?.addEventListener('click', async () => {
+    try {
+      const updated = getAdminFormContentFromInputs();
+      await upsertContentToSupabase(updated);
+      lastLoadedContent = updated;
+      alert('İçerik kaydedildi. Ana sayfayı yenileyerek görebilirsiniz.');
+    } catch (e) {
+      console.error(e);
+      alert(
+        'Kaydedilemedi. Supabase’te `site_kv` tablosu ve RLS/policy ayarlarını kontrol edin.'
+      );
+    }
   });
 
-  resetBtn?.addEventListener('click', () => {
+  resetBtn?.addEventListener('click', async () => {
     if (!confirm('Tüm içerik varsayılana dönecek. Emin misiniz?')) return;
-    saveContentToStorage({ ...defaultContent });
-    hydrateAdminForm();
-    alert('Varsayılan içerik yüklendi.');
+    try {
+      await upsertContentToSupabase({ ...defaultContent });
+      lastLoadedContent = { ...defaultContent };
+      hydrateAdminForm(lastLoadedContent);
+      alert('Varsayılan içerik yüklendi.');
+    } catch (e) {
+      console.error(e);
+      alert('Sıfırlama başarısız oldu. RLS/policy veya tablo şeması eksik olabilir.');
+    }
   });
 
-  handleAuth();
+  try {
+    await refreshAuthStateAndHydrate();
+  } catch (e) {
+    console.warn('Auth durumu kontrol edilemedi. Giriş penceresi gösteriliyor.', e);
+    showOverlay();
+  }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  applyContentToPage();
-  initAdminPage();
+document.addEventListener('DOMContentLoaded', async () => {
+  if (window.supabase && !supabase) {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+
+  lastLoadedContent = await fetchContentFromSupabaseSafe();
+  applyContentToPage(lastLoadedContent);
+
+  await initAdminPage();
 });
 
